@@ -52,6 +52,7 @@
 #include "symbolic_if.h"
 #include "symbolic_context.h"
 #include "util/common.h"
+#include "coverage.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -217,6 +218,7 @@ struct ISS : public external_interrupt_target, public clint_interrupt_target, pu
 	PrivilegeLevel prv = MachineMode;
 	int64_t lr_sc_counter = 0;
 	uint64_t total_num_instr = 0;
+	Coverage *coverage = nullptr;
 
 	// last decoded and executed instruction and opcode
 	Instruction instr;
@@ -267,6 +269,9 @@ struct ISS : public external_interrupt_target, public clint_interrupt_target, pu
     };
 
     void track_and_trace_branch(bool cond, std::shared_ptr<clover::ConcolicValue> expr) {
+        if (coverage)
+            coverage->cover_branch(last_pc, cond);
+
         if (expr->symbolic.has_value())
             tracer.add(cond, *expr->symbolic, last_pc);
     };

@@ -3,6 +3,7 @@ file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 add_library(rv32
 		iss.cpp
 		syscall.cpp
+		coverage.cpp
         ${HEADERS})
 
 target_link_libraries(rv32 symex core-common ${SoftFloat_LIBRARIES})

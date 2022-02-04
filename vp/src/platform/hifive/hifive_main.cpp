@@ -63,6 +63,7 @@
 #include "uart.h"
 #include "oled.hpp"
 #include "platform/common/options.h"
+#include "coverage.h"
 
 #include "gdb-mc/gdb_server.h"
 #include "gdb-mc/gdb_runner.h"
@@ -139,6 +140,9 @@ public:
         	// clang-format on
 	}
 };
+
+// Global variable to sustain across simulation restarts.
+static Coverage *coverage = nullptr;
 
 int sc_main(int argc, char **argv) {
 	HifiveOptions opt;
@@ -253,6 +257,13 @@ int sc_main(int argc, char **argv) {
 		drunner = new DirectCoreRunner(core);
 	}
 
+	if (!coverage) {
+		coverage = new Coverage(loader);
+		coverage->instr_mem = instr_mem_if;
+		coverage->init();
+	}
+	core.coverage = coverage;
+
 	sc_core::sc_start();
 
 	for (auto mapping : bus.ports)
@@ -265,5 +276,11 @@ int sc_main(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-	return symbolic_explore(argc, argv);
+	int r = symbolic_explore(argc, argv);
+	if (coverage) {
+		auto bc = coverage->dump_branch_coverage();
+		std::cout << "Branch Instruction Coverage: " << bc << "%" << std::endl;
+	}
+
+	return r;
 }

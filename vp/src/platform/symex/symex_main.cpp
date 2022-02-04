@@ -53,6 +53,7 @@
 #include "symex_sensor.h"
 #include "syscall.h"
 #include "platform/common/options.h"
+#include "coverage.h"
 
 #include "gdb-mc/gdb_server.h"
 #include "gdb-mc/gdb_runner.h"
@@ -91,8 +92,10 @@ public:
 			("quiet", po::bool_switch(&quiet), "do not output register values on exit");
         	// clang-format on
         }
-
 };
+
+// Global variable to sustain across simulation restarts.
+static Coverage *coverage = nullptr;
 
 int sc_main(int argc, char **argv) {
 	SymexOptions opt;
@@ -169,6 +172,13 @@ int sc_main(int argc, char **argv) {
 	if (opt.quiet)
 		 sc_core::sc_report_handler::set_verbosity_level(sc_core::SC_NONE);
 
+	if (!coverage) {
+		coverage = new Coverage(loader);
+		coverage->instr_mem = instr_mem_if;
+		coverage->init();
+	}
+	core.coverage = coverage;
+
 	sc_core::sc_start();
 	if (!opt.quiet)
 		core.show();
@@ -184,5 +194,11 @@ int sc_main(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-	return symbolic_explore(argc, argv);
+	int r = symbolic_explore(argc, argv);
+	if (coverage) {
+		auto bc = coverage->dump_branch_coverage();
+		std::cout << "Branch Instruction Coverage: " << bc << "%" << std::endl;
+	}
+
+	return r;
 }
