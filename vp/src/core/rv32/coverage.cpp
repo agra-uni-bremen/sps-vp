@@ -96,11 +96,11 @@ Coverage::dump_branch_coverage(void)
 		if (bc.first)
 			executed_branches++;
 		else
-			coverage_file << "Missed branch at: 0x" << std::hex << pair.first << std::dec << std::endl;
+			coverage_file << "Missed true branch at: 0x" << std::hex << pair.first << std::dec << std::endl;
 		if (bc.second)
 			executed_branches++;
 		else
-			coverage_file << "Missed branch at: 0x" << std::hex << pair.first << std::dec << std::endl;
+			coverage_file << "Missed false branch at: 0x" << std::hex << pair.first << std::dec << std::endl;
 	}
 
 	coverage_file.close();

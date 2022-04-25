@@ -17,8 +17,8 @@ fi
 EXECUTABLE="${1}"
 
 awk '
-/^Missed branch at: / {
-	print $4
+/^Missed (true|false) branch at: / {
+	print $5
 }
 ' | sort -u | \
 while read addr;
