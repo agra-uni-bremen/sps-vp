@@ -275,12 +275,13 @@ int sc_main(int argc, char **argv) {
 	return 0;
 }
 
-int main(int argc, char **argv) {
-	int r = symbolic_explore(argc, argv);
+void dump_coverage(void) {
 	if (coverage) {
 		auto bc = coverage->dump_branch_coverage();
 		std::cout << "Branch Instruction Coverage: " << bc << "%" << std::endl;
 	}
+}
 
-	return r;
+int main(int argc, char **argv) {
+	return symbolic_explore(argc, argv);
 }

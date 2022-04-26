@@ -53,6 +53,8 @@ static size_t paths_found = 0;
 
 static std::chrono::duration<double, std::milli> solver_time;
 
+extern void dump_coverage(void);
+
 static void
 dump_stats(void)
 {
@@ -61,7 +63,7 @@ dump_stats(void)
 	std::cout << std::endl << "---" << std::endl;
 	std::cout << "Unique paths found: " << paths_found << std::endl;
 	std::cout << "Solver Time: " << stime.count() << " seconds" << std::endl;
-	// TODO: Also dump instruction branch coverage here.
+	dump_coverage();
 	if (errors_found > 0) {
 		std::cout << "Errors found: " << errors_found << std::endl;
 		std::cout << "Testcase directory: " << *testcase_path << std::endl;

@@ -133,6 +133,10 @@ void dump_test_signature(TestOptions &opt, clover::ConcolicMemory &mem, ELFLoade
     }
 }
 
+void dump_coverage(void) {
+	return;
+}
+
 int sc_main(int argc, char **argv) {
 	TestOptions opt;
 	opt.parse(argc, argv);
