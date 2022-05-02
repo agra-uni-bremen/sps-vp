@@ -51,6 +51,9 @@ static std::filesystem::path *testcase_path = nullptr;
 static size_t errors_found = 0;
 static size_t paths_found = 0;
 
+static const char* assume_mtype = "/AGRA/riscv-vp/assume-notification";
+static bool stopped = false;
+
 static std::chrono::duration<double, std::milli> solver_time;
 
 extern void dump_coverage(void);
@@ -89,6 +92,12 @@ dump_input(std::string fn)
 	return path;
 }
 
+void
+symbolic_exploration::stop_assume(void)
+{
+	SC_REPORT_ERROR(assume_mtype, "AssumeNotification");
+}
+
 static void
 report_handler(const sc_core::sc_report& report, const sc_core::sc_actions& actions)
 {
@@ -108,6 +117,12 @@ report_handler(const sc_core::sc_report& report, const sc_core::sc_actions& acti
 
 		nactions &= ~sc_core::SC_DISPLAY; // Prevent SystemC output
 		nactions &= sc_core::SC_STOP;     // Stop SystemC simulation
+	} else if (!strcmp(mtype, assume_mtype)) {
+		stopped = true;
+
+		// Never display message for assume notifications.
+		if (nactions & sc_core::SC_DISPLAY)
+			nactions &= ~sc_core::SC_DISPLAY;
 	}
 
 	// Invoke default handler, even for host-error, to ensure that
@@ -189,9 +204,11 @@ explore_paths(int argc, char **argv)
 	clover::Trace &tracer = symbolic_context.trace;
 
 	do {
-		std::cout << std::endl << "##" << std::endl << "# "
-			<< paths_found + 1 << "th concolic execution" << std::endl
-			<< "##" << std::endl;
+		if (!stopped) {
+			std::cout << std::endl << "##" << std::endl << "# "
+				<< paths_found + 1 << "th concolic execution" << std::endl
+				<< "##" << std::endl;
+		}
 
 		tracer.reset();
 
@@ -204,10 +221,12 @@ explore_paths(int argc, char **argv)
 		sc_core::sc_curr_simcontext = NULL;
 
 		int ret;
-		if ((ret = sc_core::sc_elab_and_sim(argc, argv)))
+		stopped = false;
+		if ((ret = sc_core::sc_elab_and_sim(argc, argv)) && !stopped)
 			return ret;
 
-		++paths_found;
+		if (!stopped)
+			++paths_found;
 	} while (setupNewValues(ctx, tracer));
 
 	sc_core::sc_report_handler::release();

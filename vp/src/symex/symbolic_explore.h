@@ -20,4 +20,8 @@
 
 int symbolic_explore(int argc, char **argv);
 
+namespace symbolic_exploration {
+	void stop_assume(void);
+};
+
 #endif
