@@ -19,19 +19,30 @@
 #define RISCV_VP_SYMBOLIC_FMT_H
 
 #include <memory>
-
-#include <symbolic_context.h>
 #include <stdint.h>
+#include <symbolic_context.h>
 #include <clover/clover.h>
+
+#include "bencode.h"
 
 class SymbolicFormat {
 private:
 	clover::ExecutionContext &ctx;
 	clover::Solver &solver;
-	int fd;
-	size_t numSymField = 0;
+	clover::Solver::Env env;
+
 	unsigned offset;
 	std::shared_ptr<clover::ConcolicValue> input;
+
+	const char *input_str = nullptr;
+	ssize_t input_len;
+	bencode_t bencode;
+
+	std::shared_ptr<clover::ConcolicValue> make_symbolic(std::string name, uint64_t bitsize, size_t bytesize);
+
+	std::optional<long int> get_size(bencode_t *list_elem);
+	std::optional<std::string> get_name(bencode_t *list_elem);
+	std::optional<std::shared_ptr<clover::ConcolicValue>> get_value(bencode_t *list_elem, std::string name, uint64_t bitsize);
 
 	std::shared_ptr<clover::ConcolicValue> next_field(void);
 	std::shared_ptr<clover::ConcolicValue> get_input(void);
