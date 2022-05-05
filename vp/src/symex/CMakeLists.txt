@@ -5,6 +5,7 @@ add_library(symex
 	symbolic_explore.cpp
 	symbolic_ctrl.cpp
 	symbolic_format.cpp
+	symbolic_protocol_states.cpp
 	bencode.c)
 
 # Older C++ compiler may still require linking with -lstdc++fs to
