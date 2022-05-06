@@ -6,20 +6,22 @@
 #include <stddef.h>
 
 #include "symbolic_format.h"
+#include "symbolic_context.h"
 
 class ProtocolStates {
 private:
 	int sockfd;
+	SymbolicContext &ctx;
 
 public:
-	ProtocolStates(std::string host, std::string service);
+	ProtocolStates(SymbolicContext &_ctx, std::string host, std::string service);
 	~ProtocolStates(void);
 
 	// Transmit a given network packet, received from the software,
 	// to the state machine implementation and returns the
 	// SymbolicFormat which should be used to respond to the request
 	// send by the software.
-	std::unique_ptr<SymbolicFormat> send_message(uint8_t *buf, size_t size);
+	std::unique_ptr<SymbolicFormat> send_message(char *buf, size_t size);
 };
 
 #endif

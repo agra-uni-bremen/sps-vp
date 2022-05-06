@@ -1,4 +1,6 @@
 #include <optional>
+#include <istream>
+#include <fstream>
 #include <system_error>
 
 #include <assert.h>
@@ -9,7 +11,9 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <ext/stdio_filebuf.h>
 
+#include "bencode.hpp"
 #include "symbolic_protocol_states.h"
 
 static std::optional<socklen_t>
@@ -42,22 +46,8 @@ str2addr(const char *host, const char *service, struct sockaddr *dest)
 	return len;
 }
 
-static void
-writeall(int fd, uint8_t *data, size_t len) {
-	ssize_t ret, w;
-
-	w = 0;
-	do {
-		assert(len >= (size_t)w);
-		ret = write(fd, &data[w], len - (size_t)w);
-		if (ret < 0)
-			throw std::system_error(errno, std::generic_category());
-
-		w += ret;
-	} while ((size_t)w < len);
-}
-
-ProtocolStates::ProtocolStates(std::string host, std::string service)
+ProtocolStates::ProtocolStates(SymbolicContext &_ctx, std::string host, std::string service)
+  : ctx(_ctx)
 {
 	sockaddr_storage addr;
 	std::optional<socklen_t> len;
@@ -79,8 +69,26 @@ ProtocolStates::~ProtocolStates(void)
 }
 
 std::unique_ptr<SymbolicFormat>
-ProtocolStates::send_message(uint8_t *buf, size_t size)
+ProtocolStates::send_message(char *buf, size_t size)
 {
-	writeall(sockfd, buf, size);
-	return nullptr;
+	// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_io.html
+	__gnu_cxx::stdio_filebuf<char> sbuf(sockfd, std::ios::in|std::ios::out);
+	std::iostream sock(&sbuf);
+
+	// Send message received by client to server.
+	std::string out(buf, size);
+	bencode::encode(sock, out);
+
+	// Block until the state machine server has a response
+	// for us and convert that response to a SymbolicFormat.
+	auto data = bencode::decode(sock, bencode::no_check_eof);
+
+	// Hack to create symbolic format from parsed data.
+	std::string tmpFile = "/tmp/protocol_state_format";
+	std::fstream tmp(tmpFile, std::ios::binary|std::ios::trunc|std::ios::out);
+	if (!tmp.is_open())
+		throw std::runtime_error("failed to open file");
+	bencode::encode(tmp, data);
+	
+	return std::make_unique<SymbolicFormat>(ctx, tmpFile);
 }
