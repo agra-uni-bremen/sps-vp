@@ -54,6 +54,7 @@
 #include "memory.h"
 #include "symbolic_memory.h"
 #include "symbolic_context.h"
+#include "symbolic_protocol_states.h"
 #include "symbolic_explore.h"
 #include "symbolic_ctrl.h"
 #include "symbolic_uart.h"
@@ -256,6 +257,16 @@ int sc_main(int argc, char **argv) {
 	} else {
 		drunner = new DirectCoreRunner(core);
 	}
+
+	ProtocolStates client(symbolic_context, "127.0.0.1", "4242");
+	uart1.tx_callback = [&client](uint8_t *buf, size_t size) {
+		printf("Received input of size '%zu':\n", size);
+	        for (size_t i = 0; i < size; i++)
+			printf(" 0x%" PRIx8 " ", buf[i]);
+	        puts("");
+
+		client.send_message((char*)buf, size);
+	};
 
 	if (!coverage) {
 		coverage = new Coverage(loader);
