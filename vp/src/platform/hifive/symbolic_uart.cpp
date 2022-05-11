@@ -48,8 +48,18 @@
 #define UART_RXWM (1 << 1)
 #define UART_FULL (1 << 31)
 
-/* Extracts the interrupt trigger threshold from a control register */
+// Extracts the interrupt trigger threshold from a control register
 #define UART_CTRL_CNT(REG) ((REG) >> 16)
+
+// SLIP (as defined in RFC 1055) doesn't specify an MTU. We therefore
+// subsequently allocate memory for the packet buffer using realloc(3).
+#define SLIP_SNDBUF_STEP 1500
+
+// SLIP constants as defined in RFC 1055
+#define SLIP_END 0300
+#define SLIP_ESC 0333
+#define SLIP_ESC_END 0334
+#define SLIP_ESC_ESC 0335
 
 enum {
 	TXDATA_REG_ADDR = 0x0,
@@ -70,9 +80,13 @@ SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicCon
 	while ((v = fmt.next_byte()))
 		rx_fifo.push(v);
 
-	slip_end = solver.BVC(std::nullopt, (uint8_t)0300);
-	slip_esc_esc = solver.BVC(std::nullopt, (uint8_t)0335);
+	slip_end = solver.BVC(std::nullopt, (uint8_t)SLIP_END);
+	slip_esc_esc = solver.BVC(std::nullopt, (uint8_t)SLIP_ESC_ESC);
 	rxdata_end = (uint32_t)0300;
+
+	sndsiz = 0;
+	if (!(sndbuf = (uint8_t *)malloc(SLIP_SNDBUF_STEP * sizeof(uint8_t))))
+		std::system_error(errno, std::generic_category());
 
 	router
 	    .add_register_bank({
@@ -93,6 +107,13 @@ SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicCon
 
 SymbolicUART::~SymbolicUART(void) {
 	return;
+}
+
+void SymbolicUART::run_tx_callback(void) {
+	tx_callback(sndbuf, sndsiz);
+	if (sndsiz > SLIP_SNDBUF_STEP && !(sndbuf = (uint8_t *)realloc(sndbuf, SLIP_SNDBUF_STEP)))
+		throw std::system_error(errno, std::generic_category());
+	sndsiz = 0;
 }
 
 void SymbolicUART::register_access_callback(const vp::map::register_access_t &r) {
@@ -134,6 +155,31 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 
 	bool notify = false;
 	if (r.write) {
+		// TODO: The data received here might include a symbolic TLM extension.
+		if (tx_callback && r.vptr == &txdata) {
+			uint8_t data = (uint8_t)r.nv;
+			if (data == SLIP_END && sndsiz > 0)
+				run_tx_callback();
+
+			if (sndsiz > 0 && sndbuf[sndsiz - 1] == SLIP_ESC) {
+				switch (data) {
+				case SLIP_ESC_END:
+					sndbuf[sndsiz - 1] = SLIP_END;
+					return;
+				case SLIP_ESC_ESC:
+					sndbuf[sndsiz - 1] = SLIP_ESC;
+					return;
+				}
+			}
+
+			if (sndsiz && sndsiz % SLIP_SNDBUF_STEP == 0) {
+				size_t newsiz = (sndsiz + SLIP_SNDBUF_STEP) * sizeof(uint8_t);
+				if (!(sndbuf = (uint8_t *)realloc(sndbuf, newsiz)))
+					throw std::system_error(errno, std::generic_category());
+			}
+			sndbuf[sndsiz++] = data;
+		}
+
 		if (r.vptr == &txctrl && UART_CTRL_CNT(r.nv) < UART_CTRL_CNT(txctrl))
 			notify = true;
 		else if (r.vptr == &rxctrl && UART_CTRL_CNT(r.nv) < UART_CTRL_CNT(rxctrl))

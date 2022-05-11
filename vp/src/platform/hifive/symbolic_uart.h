@@ -58,6 +58,9 @@
 
 class SymbolicUART : public sc_core::sc_module {
 public:
+	typedef std::function<void(uint8_t *buf, size_t size)> receive_callback;
+	receive_callback tx_callback = nullptr;
+
 	interrupt_gateway *plic;
 	tlm_utils::simple_target_socket<SymbolicUART> tsock;
 
@@ -70,6 +73,9 @@ private:
 	clover::Solver &solver;
 	clover::ExecutionContext &ctx;
 	SymbolicFormat &fmt;
+
+	uint8_t *sndbuf = NULL;
+	size_t sndsiz;
 
 	uint32_t irq;
 	std::shared_ptr<clover::ConcolicValue> slip_end;
@@ -90,6 +96,7 @@ private:
 
 	vp::map::LocalRouter router = {"SymbolicUART"};
 
+	void run_tx_callback(void);
 	void register_access_callback(const vp::map::register_access_t &);
 	void transport(tlm::tlm_generic_payload &, sc_core::sc_time &);
 	void interrupt(void);
