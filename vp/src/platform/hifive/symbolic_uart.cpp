@@ -61,23 +61,18 @@ enum {
 	DIV_REG_ADDR = 0x18,
 };
 
-SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicContext &_ctx, SymbolicFormat &_fmt, bool _slip_mode)
+SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicContext &_ctx, SymbolicFormat &_fmt)
   : solver(_ctx.solver), ctx(_ctx.ctx), fmt(_fmt) {
 	irq = irqsrc;
-	slip_mode = _slip_mode;
 	tsock.register_b_transport(this, &SymbolicUART::transport);
 
 	std::shared_ptr<clover::ConcolicValue> v;
 	while ((v = fmt.next_byte()))
 		rx_fifo.push(v);
 
-	if (slip_mode) {
-		slip_end = solver.BVC(std::nullopt, (uint8_t)0300);
-		slip_esc_esc = solver.BVC(std::nullopt, (uint8_t)0335);
-		rxdata_end = (uint32_t)0300;
-	} else {
-		rxdata_end = 1 << 31;
-	}
+	slip_end = solver.BVC(std::nullopt, (uint8_t)0300);
+	slip_esc_esc = solver.BVC(std::nullopt, (uint8_t)0335);
+	rxdata_end = (uint32_t)0300;
 
 	router
 	    .add_register_bank({
@@ -113,12 +108,10 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 				rxdata = rxdata_end;
 				rxdata_end = 1 << 31;
 			} else {
-				auto symbolic_byte = rx_fifo.front();
+				auto reg = rx_fifo.front();
 				rx_fifo.pop();
 
-				auto reg = symbolic_byte;
-				if (slip_mode)
-					reg = (reg->uge(slip_end))->band(reg->ule(slip_esc_esc))->select(reg->urem(slip_end), reg);
+				reg = (reg->uge(slip_end))->band(reg->ule(slip_esc_esc))->select(reg->urem(slip_end), reg);
 				reg = reg->zext(32);
 
 				rxdata = solver.getValue<uint32_t>(reg->concrete);

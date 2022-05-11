@@ -58,11 +58,10 @@
 
 class SymbolicUART : public sc_core::sc_module {
 public:
-	bool slip_mode;
 	interrupt_gateway *plic;
 	tlm_utils::simple_target_socket<SymbolicUART> tsock;
 
-	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, SymbolicFormat &_fmt, bool _slip_mode = false);
+	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, SymbolicFormat &_fmt);
 	~SymbolicUART(void);
 
 	SC_HAS_PROCESS(SymbolicUART);
