@@ -56,7 +56,7 @@ public:
 	 * Also: KLEE Array Type would be useful here ReadLSB, ReadMSB, …
 	 * See:  https://gitlab.informatik.uni-bremen.de/riscv/clover/-/issues/7 */
 	std::shared_ptr<clover::ConcolicValue> next_byte(void);
-	size_t remaning_bytes(void);
+	size_t remaining_bytes(void);
 };
 
 #endif

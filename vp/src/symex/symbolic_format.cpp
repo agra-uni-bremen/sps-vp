@@ -293,7 +293,7 @@ SymbolicFormat::next_byte(void)
 }
 
 size_t
-SymbolicFormat::remaning_bytes(void)
+SymbolicFormat::remaining_bytes(void)
 {
 	if (!input_str || offset == 0)
 		return 0; // empty
