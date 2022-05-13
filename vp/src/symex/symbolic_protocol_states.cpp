@@ -68,9 +68,14 @@ ProtocolStates::~ProtocolStates(void)
 	close(sockfd);
 }
 
-std::unique_ptr<SymbolicFormat>
+void
 ProtocolStates::send_message(char *buf, size_t size)
 {
+	// If we haven't passed the entire low-level SISL specification
+	// to the software, we raise in exception (this shouldn't happen).
+	if (!empty())
+		throw std::runtime_error("previous message has not been fully received");
+
 	// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_io.html
 	__gnu_cxx::stdio_filebuf<char> sbuf(sockfd, std::ios::in|std::ios::out);
 	std::iostream sock(&sbuf);
@@ -90,5 +95,29 @@ ProtocolStates::send_message(char *buf, size_t size)
 		throw std::runtime_error("failed to open file");
 	bencode::encode(tmp, data);
 	
-	return std::make_unique<SymbolicFormat>(ctx, tmpFile);
+	// XXX: Assumption previous messages has been fully received.
+	// See exception throw above.
+	lastMsg = std::make_unique<SymbolicFormat>(ctx, tmpFile);
+}
+
+std::shared_ptr<clover::ConcolicValue>
+ProtocolStates::next_byte(void)
+{
+	if (!lastMsg)
+		throw std::invalid_argument("no low-level SISL message available");
+	return lastMsg->next_byte();
+}
+
+size_t
+ProtocolStates::remaining_bytes(void)
+{
+	if (!lastMsg)
+		return 0;
+	return lastMsg->remaining_bytes();
+}
+
+bool
+ProtocolStates::empty(void)
+{
+	return remaining_bytes() == 0;
 }
