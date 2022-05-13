@@ -59,7 +59,7 @@ ProtocolStates::ProtocolStates(SymbolicContext &_ctx, std::string host, std::str
 	if ((sockfd = socket(addr.ss_family, SOCK_STREAM, 0)) == -1)
 		throw std::system_error(errno, std::generic_category());
 	if (connect(sockfd, (struct sockaddr*)&addr, *len) == -1)
-		throw std::system_error(errno, std::generic_category());
+		throw std::runtime_error("couldn't connect to SPS server");
 }
 
 ProtocolStates::~ProtocolStates(void)
