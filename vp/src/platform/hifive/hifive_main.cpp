@@ -132,11 +132,15 @@ public:
 
 	bool enable_can = false;
 	std::string input_format = "";
+	std::string sps_host = "127.0.0.1";
+	std::string sps_service = "2342";
 
 	HifiveOptions(void) {
         	// clang-format off
 		add_options()
 			("enable-can", po::bool_switch(&enable_can), "enable support for CAN peripheral")
+			("sps-host", po::value<std::string>(&sps_host), "connect to SPS server at given host")
+			("sps-port", po::value<std::string>(&sps_service), "port of SPS server (see --sps-host)")
 			("input-format", po::value<std::string>(&input_format), "symfmt input format specification");
         	// clang-format on
 	}
@@ -258,12 +262,12 @@ int sc_main(int argc, char **argv) {
 		drunner = new DirectCoreRunner(core);
 	}
 
-	ProtocolStates client(symbolic_context, "127.0.0.1", "4242");
+	ProtocolStates client(symbolic_context, opt.sps_host, opt.sps_service);
 	uart1.tx_callback = [&client](uint8_t *buf, size_t size) {
 		printf("Received input of size '%zu':\n", size);
-	        for (size_t i = 0; i < size; i++)
+		for (size_t i = 0; i < size; i++)
 			printf(" 0x%" PRIx8 " ", buf[i]);
-	        puts("");
+		puts("");
 
 		client.send_message((char*)buf, size);
 	};
