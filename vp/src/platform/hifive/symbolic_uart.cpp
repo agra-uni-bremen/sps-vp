@@ -71,14 +71,10 @@ enum {
 	DIV_REG_ADDR = 0x18,
 };
 
-SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicContext &_ctx, SymbolicFormat &_fmt)
-  : solver(_ctx.solver), ctx(_ctx.ctx), fmt(_fmt) {
+SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicContext &_ctx, ProtocolStates &_sps)
+  : solver(_ctx.solver), ctx(_ctx.ctx), sps(_sps) {
 	irq = irqsrc;
 	tsock.register_b_transport(this, &SymbolicUART::transport);
-
-	std::shared_ptr<clover::ConcolicValue> v;
-	while ((v = fmt.next_byte()))
-		rx_fifo.push(v);
 
 	slip_end = solver.BVC(std::nullopt, (uint8_t)SLIP_END);
 	slip_esc_esc = solver.BVC(std::nullopt, (uint8_t)SLIP_ESC_ESC);
@@ -87,6 +83,16 @@ SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicCon
 	sndsiz = 0;
 	if (!(sndbuf = (uint8_t *)malloc(SLIP_SNDBUF_STEP * sizeof(uint8_t))))
 		std::system_error(errno, std::generic_category());
+
+	// Pass all messages received via SLIP to ProtocolStates.
+	tx_callback = [this](uint8_t *buf, size_t size) {
+		printf("Received input of size '%zu':\n", size);
+		for (size_t i = 0; i < size; i++)
+			printf(" 0x%" PRIx8 " ", buf[i]);
+		puts("");
+
+		this->sps.send_message((char*)buf, size);
+	};
 
 	router
 	    .add_register_bank({
@@ -125,13 +131,11 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 			// UART drivers drain rxdata during initialization.
 			if (!(ie & UART_RXWM)) {
 				rxdata = 1 << 31;
-			} else if (rx_fifo.empty()) {
+			} else if (sps.empty()) {
 				rxdata = rxdata_end;
 				rxdata_end = 1 << 31;
 			} else {
-				auto reg = rx_fifo.front();
-				rx_fifo.pop();
-
+				auto reg = sps.next_byte();
 				reg = (reg->uge(slip_end))->band(reg->ule(slip_esc_esc))->select(reg->urem(slip_end), reg);
 				reg = reg->zext(32);
 
@@ -141,7 +145,7 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 			}
 		} else if (r.vptr == &ip) {
 			uint32_t ret = UART_TXWM; // Transmit always ready
-			if (rx_fifo.size() > UART_CTRL_CNT(rxctrl))
+			if (sps.remaining_bytes() > UART_CTRL_CNT(rxctrl))
 				ret |= UART_RXWM;
 			ip = ret;
 		} else if (r.vptr == &ie) {
@@ -212,7 +216,7 @@ void SymbolicUART::transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &
 
 void SymbolicUART::interrupt(void) {
 	bool trigger = false;
-	if ((ie & UART_RXWM) && rx_fifo.size() > UART_CTRL_CNT(rxctrl))
+	if ((ie & UART_RXWM) && sps.remaining_bytes() > UART_CTRL_CNT(rxctrl))
 		trigger = true;
 	if (ie & UART_TXWM)
 		trigger = true;

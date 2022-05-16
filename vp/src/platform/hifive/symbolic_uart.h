@@ -48,9 +48,9 @@
 #include <tlm_utils/simple_target_socket.h>
 #include <clover/clover.h>
 
-#include "symbolic_format.h"
 #include "symbolic_context.h"
 #include "symbolic_extension.h"
+#include "symbolic_protocol_states.h"
 
 #include "core/common/irq_if.h"
 #include "util/tlm_map.h"
@@ -64,7 +64,7 @@ public:
 	interrupt_gateway *plic;
 	tlm_utils::simple_target_socket<SymbolicUART> tsock;
 
-	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, SymbolicFormat &_fmt);
+	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, ProtocolStates &_sps);
 	~SymbolicUART(void);
 
 	SC_HAS_PROCESS(SymbolicUART);
@@ -72,7 +72,7 @@ public:
 private:
 	clover::Solver &solver;
 	clover::ExecutionContext &ctx;
-	SymbolicFormat &fmt;
+	ProtocolStates &sps;
 
 	uint8_t *sndbuf = NULL;
 	size_t sndsiz;
@@ -92,8 +92,6 @@ private:
 	uint32_t div = 0;
 
 	AsyncEvent asyncEvent;
-	std::queue<std::shared_ptr<clover::ConcolicValue>> rx_fifo;
-
 	vp::map::LocalRouter router = {"SymbolicUART"};
 
 	void run_tx_callback(void);
