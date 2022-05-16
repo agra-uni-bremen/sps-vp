@@ -2,9 +2,11 @@
 #define RISCV_VP_PROTOCOL_STATES_H
 
 #include <memory>
+#include <istream>
 #include <stddef.h>
 #include <stdbool.h>
 #include <clover/clover.h>
+#include <ext/stdio_filebuf.h>
 
 #include "symbolic_format.h"
 #include "symbolic_context.h"
@@ -13,6 +15,10 @@ class ProtocolStates {
 private:
 	int sockfd;
 	SymbolicContext &ctx;
+
+	// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_io.html
+	__gnu_cxx::stdio_filebuf<char> *sbuf = nullptr;
+	std::iostream *sock = nullptr;
 
 	std::unique_ptr<SymbolicFormat> lastMsg = nullptr;
 
