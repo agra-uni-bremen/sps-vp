@@ -60,14 +60,22 @@ ProtocolStates::ProtocolStates(SymbolicContext &_ctx, std::string host, std::str
 		throw std::runtime_error("couldn't connect to SPS server");
 
 	// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_io.html
-	sbuf = new __gnu_cxx::stdio_filebuf<char>(sockfd, std::ios::in|std::ios::out);
-	sock = new std::iostream(sbuf);
+	// XXX: dup(3) the file descriptors?
+	inbuf = new __gnu_cxx::stdio_filebuf<char>(sockfd, std::ios::binary|std::ios::in);
+	sockin = new std::istream(inbuf);
+	outbuf = new __gnu_cxx::stdio_filebuf<char>(sockfd, std::ios::binary|std::ios::out);
+	sockout = new std::ostream(outbuf);
 }
 
 ProtocolStates::~ProtocolStates(void)
 {
-	delete sock;
-	delete sbuf; /* XXX: Does this close sockfd? */
+	delete sockin;
+	delete inbuf;
+
+	delete sockout;
+	delete outbuf;
+
+	/* XXX: Does this close sockfd? */
 }
 
 void
@@ -80,12 +88,16 @@ ProtocolStates::send_message(char *buf, size_t size)
 
 	// Send message received by client to server.
 	std::string out(buf, size);
-	bencode::encode(*sock, out);
+	bencode::encode(*sockout, out);
+	sockout->flush();
+	if (sockout->bad())
+		throw std::runtime_error("failed to write bencode data to socket");
 
 	// Block until the state machine server has a response
 	// for us and convert that response to a SymbolicFormat.
-	auto data = bencode::decode(*sock, bencode::no_check_eof);
-	sock->flush();
+	auto data = bencode::decode(*sockin, bencode::no_check_eof);
+	if (sockin->bad())
+		throw std::runtime_error("failed to read bencode data from socket");
 
 	// Hack to create symbolic format from parsed data.
 	std::string tmpFile = "/tmp/protocol_state_format";

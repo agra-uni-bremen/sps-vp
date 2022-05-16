@@ -17,8 +17,13 @@ private:
 	SymbolicContext &ctx;
 
 	// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_io.html
-	__gnu_cxx::stdio_filebuf<char> *sbuf = nullptr;
-	std::iostream *sock = nullptr;
+	//
+	// XXX: For some reason, using a combined std::iostream for both
+	// reading and writing from/to the socket doesn't work.
+	__gnu_cxx::stdio_filebuf<char> *inbuf = nullptr;
+	__gnu_cxx::stdio_filebuf<char> *outbuf = nullptr;
+	std::istream *sockin = nullptr;
+	std::ostream *sockout = nullptr;
 
 	std::unique_ptr<SymbolicFormat> lastMsg = nullptr;
 
