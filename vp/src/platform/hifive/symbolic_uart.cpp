@@ -163,26 +163,27 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 		// TODO: The data received here might include a symbolic TLM extension.
 		if (tx_callback && r.vptr == &txdata) {
 			uint8_t data = (uint8_t)r.nv;
-			if (data == SLIP_END && sndsiz > 0)
+			if (data == SLIP_END && sndsiz > 0) {
 				run_tx_callback();
-
-			if (sndsiz > 0 && sndbuf[sndsiz - 1] == SLIP_ESC) {
-				switch (data) {
-				case SLIP_ESC_END:
-					sndbuf[sndsiz - 1] = SLIP_END;
-					return;
-				case SLIP_ESC_ESC:
-					sndbuf[sndsiz - 1] = SLIP_ESC;
-					return;
+			} else {
+				if (sndsiz > 0 && sndbuf[sndsiz - 1] == SLIP_ESC) {
+					switch (data) {
+					case SLIP_ESC_END:
+						sndbuf[sndsiz - 1] = SLIP_END;
+						return;
+					case SLIP_ESC_ESC:
+						sndbuf[sndsiz - 1] = SLIP_ESC;
+						return;
+					}
 				}
-			}
 
-			if (sndsiz && sndsiz % SLIP_SNDBUF_STEP == 0) {
-				size_t newsiz = (sndsiz + SLIP_SNDBUF_STEP) * sizeof(uint8_t);
-				if (!(sndbuf = (uint8_t *)realloc(sndbuf, newsiz)))
-					throw std::system_error(errno, std::generic_category());
+				if (sndsiz && sndsiz % SLIP_SNDBUF_STEP == 0) {
+					size_t newsiz = (sndsiz + SLIP_SNDBUF_STEP) * sizeof(uint8_t);
+					if (!(sndbuf = (uint8_t *)realloc(sndbuf, newsiz)))
+						throw std::system_error(errno, std::generic_category());
+				}
+				sndbuf[sndsiz++] = data;
 			}
-			sndbuf[sndsiz++] = data;
 		}
 
 		if (r.vptr == &txctrl && UART_CTRL_CNT(r.nv) < UART_CTRL_CNT(txctrl))
