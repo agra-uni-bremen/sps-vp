@@ -92,6 +92,7 @@ SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicCon
 		puts("");
 
 		this->sps.send_message((char*)buf, size);
+		this->asyncEvent.notify(); // trigger interrupt
 	};
 
 	router
