@@ -104,7 +104,10 @@ ProtocolStates::send_message(char *buf, size_t size)
 	std::fstream tmp(tmpFile, std::ios::binary|std::ios::trunc|std::ios::out);
 	if (!tmp.is_open())
 		throw std::runtime_error("failed to open file");
+	if (tmp.bad())
+		throw std::runtime_error("failed to write temporary file");
 	bencode::encode(tmp, data);
+	tmp.close();
 	
 	// XXX: Assumption previous messages has been fully received.
 	// See exception throw above.
