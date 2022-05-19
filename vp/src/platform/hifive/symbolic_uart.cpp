@@ -86,9 +86,12 @@ SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicCon
 
 	// Pass all messages received via SLIP to ProtocolStates.
 	tx_callback = [this](uint8_t *buf, size_t size) {
-		printf("Received input of size '%zu':\n", size);
-		for (size_t i = 0; i < size; i++)
-			printf(" 0x%" PRIx8 " ", buf[i]);
+		printf("[vp::SymbolicUART] Received input of size '%zu':", size);
+		for (size_t i = 0; i < size; i++) {
+			if (i % 10 == 0)
+				printf("\n\t");
+			printf(" 0x%.2" PRIx8 " ", buf[i]);
+		}
 		puts("");
 
 		this->sps.send_message((char*)buf, size);
