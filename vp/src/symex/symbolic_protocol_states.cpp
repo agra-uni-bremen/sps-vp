@@ -88,7 +88,7 @@ ProtocolStates::send_message(char *buf, size_t size)
 
 	// Send message received by client to server.
 	std::string out(buf, size);
-	bencode::encode(*sockout, out);
+	bencode::encode(*sockout, bencode::list{SPS_DATA, out});
 	sockout->flush();
 	if (sockout->bad())
 		throw std::runtime_error("failed to write bencode data to socket");

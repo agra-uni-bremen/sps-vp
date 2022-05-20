@@ -13,6 +13,11 @@
 
 class ProtocolStates {
 private:
+	enum {
+		SPS_DATA = 0x0,
+		SPS_RST  = 0x1,
+	};
+
 	int sockfd;
 	SymbolicContext &ctx;
 
