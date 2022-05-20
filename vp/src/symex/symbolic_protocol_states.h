@@ -36,6 +36,9 @@ public:
 	ProtocolStates(SymbolicContext &_ctx, std::string host, std::string service);
 	~ProtocolStates(void);
 
+	// Reset SPS state machine.
+	void reset(void);
+
 	// Transmit a given network packet, received from the software,
 	// to the SPS server and block until the SPS server returns a
 	// response (i.e. a new low-level SISL message).

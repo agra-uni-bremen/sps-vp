@@ -79,6 +79,15 @@ ProtocolStates::~ProtocolStates(void)
 }
 
 void
+ProtocolStates::reset(void)
+{
+	bencode::encode(*sockout, bencode::list{SPS_RST, 0x0});
+	sockout->flush();
+	if (sockout->bad())
+		throw std::runtime_error("failed reset SPS state machine");
+}
+
+void
 ProtocolStates::send_message(char *buf, size_t size)
 {
 	// If we haven't passed the entire low-level SISL specification

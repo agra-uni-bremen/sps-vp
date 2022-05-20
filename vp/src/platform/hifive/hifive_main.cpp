@@ -275,6 +275,7 @@ int sc_main(int argc, char **argv) {
 	delete grunner;
 	delete drunner;
 
+	client.reset();
 	return 0;
 }
 
