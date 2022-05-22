@@ -95,6 +95,9 @@ ProtocolStates::reset(void)
 	sockout->flush();
 	if (sockout->bad())
 		throw std::runtime_error("failed reset SPS state machine");
+
+	// Reset lastMsg
+	lastMsg = nullptr;
 }
 
 void
