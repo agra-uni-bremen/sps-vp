@@ -144,12 +144,19 @@ public:
 	}
 };
 
-// Global variable to sustain across simulation restarts.
+// Global variables to sustain across simulation restarts.
 static Coverage *coverage = nullptr;
+static ProtocolStates *sps = nullptr;
 
 int sc_main(int argc, char **argv) {
 	HifiveOptions opt;
 	opt.parse(argc, argv);
+
+	if (!sps) {
+		sps = new ProtocolStates(symbolic_context, opt.sps_host, opt.sps_service);
+	} else {
+		sps->reset();
+	}
 
 	tlm::tlm_global_quantum::instance().set(sc_core::sc_time(opt.tlm_global_quantum, sc_core::SC_NS));
 
@@ -180,8 +187,7 @@ int sc_main(int argc, char **argv) {
 	spi1.connect(2, oled);
 	SPI spi2("SPI2");
 	UART uart0("UART0", 3);
-	ProtocolStates client(symbolic_context, opt.sps_host, opt.sps_service);
-	SymbolicUART uart1("UART1", 4, symbolic_context, client);
+	SymbolicUART uart1("UART1", 4, symbolic_context, sps);
 	MaskROM maskROM("MASKROM");
 	DebugMemoryInterface dbg_if("DebugMemoryInterface");
 
@@ -275,7 +281,6 @@ int sc_main(int argc, char **argv) {
 	delete grunner;
 	delete drunner;
 
-	client.reset();
 	return 0;
 }
 

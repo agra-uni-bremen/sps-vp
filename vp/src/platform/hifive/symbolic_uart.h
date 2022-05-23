@@ -64,7 +64,7 @@ public:
 	interrupt_gateway *plic;
 	tlm_utils::simple_target_socket<SymbolicUART> tsock;
 
-	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, ProtocolStates &_sps);
+	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, ProtocolStates *_sps);
 	~SymbolicUART(void);
 
 	SC_HAS_PROCESS(SymbolicUART);
@@ -72,7 +72,7 @@ public:
 private:
 	clover::Solver &solver;
 	clover::ExecutionContext &ctx;
-	ProtocolStates &sps;
+	ProtocolStates *sps;
 
 	uint8_t *sndbuf = NULL;
 	size_t sndsiz;

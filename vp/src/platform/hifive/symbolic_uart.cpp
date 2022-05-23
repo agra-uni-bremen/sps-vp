@@ -71,7 +71,7 @@ enum {
 	DIV_REG_ADDR = 0x18,
 };
 
-SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicContext &_ctx, ProtocolStates &_sps)
+SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicContext &_ctx, ProtocolStates *_sps)
   : solver(_ctx.solver), ctx(_ctx.ctx), sps(_sps) {
 	irq = irqsrc;
 	tsock.register_b_transport(this, &SymbolicUART::transport);
@@ -93,7 +93,7 @@ SymbolicUART::SymbolicUART(sc_core::sc_module_name, uint32_t irqsrc, SymbolicCon
 		}
 		puts("");
 
-		this->sps.send_message((char*)buf, size);
+		this->sps->send_message((char*)buf, size);
 		this->asyncEvent.notify(); // trigger interrupt
 	};
 
@@ -134,13 +134,13 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 			// UART drivers drain rxdata during initialization.
 			if (!(ie & UART_RXWM)) {
 				rxdata = 1 << 31;
-			} else if (sps.empty()) {
+			} else if (sps->empty()) {
 				if (rxdata == SLIP_END)
 					rxdata = 1 << 31;
 				else
 					rxdata = (uint32_t)SLIP_END;
 			} else {
-				auto reg = sps.next_byte();
+				auto reg = sps->next_byte();
 				reg = (reg->uge(slip_end))->band(reg->ule(slip_esc_esc))->select(reg->urem(slip_end), reg);
 				reg = reg->zext(32);
 
@@ -150,7 +150,7 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 			}
 		} else if (r.vptr == &ip) {
 			uint32_t ret = UART_TXWM; // Transmit always ready
-			if (sps.remaining_bytes() > UART_CTRL_CNT(rxctrl))
+			if (sps->remaining_bytes() > UART_CTRL_CNT(rxctrl))
 				ret |= UART_RXWM;
 			ip = ret;
 		} else if (r.vptr == &ie) {
@@ -222,7 +222,7 @@ void SymbolicUART::transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &
 
 void SymbolicUART::interrupt(void) {
 	bool trigger = false;
-	if ((ie & UART_RXWM) && sps.remaining_bytes() > UART_CTRL_CNT(rxctrl))
+	if ((ie & UART_RXWM) && sps->remaining_bytes() > UART_CTRL_CNT(rxctrl))
 		trigger = true;
 	if (ie & UART_TXWM)
 		trigger = true;
