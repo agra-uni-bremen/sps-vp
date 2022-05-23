@@ -47,6 +47,7 @@ str2addr(const char *host, const char *service, struct sockaddr *dest)
 ProtocolStates::ProtocolStates(SymbolicContext &_ctx, std::string host, std::string service)
   : ctx(_ctx)
 {
+	int infd, outfd;
 	sockaddr_storage addr;
 	std::optional<socklen_t> len;
 
@@ -59,12 +60,23 @@ ProtocolStates::ProtocolStates(SymbolicContext &_ctx, std::string host, std::str
 	if (connect(sockfd, (struct sockaddr*)&addr, *len) == -1)
 		throw std::runtime_error("couldn't connect to SPS server");
 
+	//
 	// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_io.html
-	// XXX: dup(3) the file descriptors?
-	inbuf = new __gnu_cxx::stdio_filebuf<char>(sockfd, std::ios::binary|std::ios::in);
+	//
+
+	if ((infd = dup(sockfd)) == -1)
+		throw std::system_error(errno, std::generic_category());
+	inbuf = new __gnu_cxx::stdio_filebuf<char>(infd, std::ios::binary|std::ios::in);
 	sockin = new std::istream(inbuf);
-	outbuf = new __gnu_cxx::stdio_filebuf<char>(sockfd, std::ios::binary|std::ios::out);
+
+	if ((outfd = dup(sockfd)) == -1)
+		throw std::system_error(errno, std::generic_category());
+	outbuf = new __gnu_cxx::stdio_filebuf<char>(outfd, std::ios::binary|std::ios::out);
 	sockout = new std::ostream(outbuf);
+
+	// close original sockfd as it has been dup'ed above.
+	if (close(sockfd) == -1)
+		throw std::system_error(errno, std::generic_category());
 }
 
 ProtocolStates::~ProtocolStates(void)
@@ -74,8 +86,6 @@ ProtocolStates::~ProtocolStates(void)
 
 	delete sockout;
 	delete outbuf;
-
-	/* XXX: Does this close sockfd? */
 }
 
 void
