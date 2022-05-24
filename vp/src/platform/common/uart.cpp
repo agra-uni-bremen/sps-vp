@@ -84,7 +84,7 @@ void UART::handle_cmd(uint8_t cmd) {
 		rxpush(cmd);
 		break;
 	case KEY_EXIT:
-		exit(EXIT_SUCCESS);
+		_Exit(EXIT_SUCCESS);
 		break;
 	default:
 		return; /* unknown command → ignore */

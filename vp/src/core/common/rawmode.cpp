@@ -53,7 +53,7 @@ static void reset_term(void) {
 static void sighandler(int num) {
 	(void)num;
 	reset_term();
-	exit(EXIT_FAILURE);
+	std::_Exit(EXIT_FAILURE);
 }
 
 static void sethandler(void) {
