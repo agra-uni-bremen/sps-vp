@@ -1587,7 +1587,7 @@ void ISS::init(instr_memory_if *instr_mem, data_memory_if *data_mem, clint_if *c
 }
 
 void ISS::sys_exit() {
-	shall_exit = true;
+	shall_exit = symbolic_context.processed_packet();
 }
 
 unsigned ISS::get_syscall_register_index() {

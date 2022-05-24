@@ -211,6 +211,7 @@ explore_paths(int argc, char **argv)
 		}
 
 		tracer.reset();
+		symbolic_context.prepare_packet_sequence(1);
 
 		// Reset SystemC simulation context
 		// See also: https://github.com/accellera-official/systemc/issues/8

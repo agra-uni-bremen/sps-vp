@@ -48,3 +48,16 @@ SymbolicContext::assume(std::shared_ptr<clover::BitVector> constraint)
 		symbolic_exploration::stop_assume();
 	}
 }
+
+void
+SymbolicContext::prepare_packet_sequence(size_t n)
+{
+	current_packet_index = 0;
+	packet_sequence_length = n;
+}
+
+bool
+SymbolicContext::processed_packet(void)
+{
+	return ++current_packet_index >= packet_sequence_length;
+}

@@ -18,9 +18,15 @@
 #ifndef RISCV_ISA_SYMBOLIC_CTX_H
 #define RISCV_ISA_SYMBOLIC_CTX_H
 
+#include <stdbool.h>
+#include <sys/types.h>
 #include <clover/clover.h>
 
 class SymbolicContext {
+private:
+	size_t current_packet_index = 0;
+	size_t packet_sequence_length = 0;
+
 public:
 	clover::Solver solver;
 	clover::Trace trace;
@@ -28,6 +34,23 @@ public:
 
 	SymbolicContext(void);
 	void assume(std::shared_ptr<clover::BitVector> constraint);
+
+	// Prepare execution of the software with a packet sequence
+	// of the specified length. That is, expect the software to
+	// receive exactly N packets and terminate software execution
+	// after the Nth packet has been processed.
+	//
+	// This also reset the current packet sequence index and should
+	// thus be called before restarting software execution.
+	void prepare_packet_sequence(size_t);
+
+	// Indicate that an additional packet of the packet sequence
+	// has been fully processed by the executed RISC-V software.
+	//
+	// Returns true, if the VP should terminate software execution
+	// thereafter, i.e. if the packet that has just been processed
+	// was the last packet of the packet sequence.
+	bool processed_packet(void);
 };
 
 extern SymbolicContext symbolic_context;
