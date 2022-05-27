@@ -66,12 +66,8 @@ Coverage::init_section(const Elf32_Shdr *section)
 void
 Coverage::cover_branch(uint64_t addr, bool condition)
 {
-	if (!branch_instrs.count(addr)) {
-		std::stringstream msg;
-
-		msg << "unknown branch instruction at 0x" << std::hex << addr << std::endl;
-		throw std::invalid_argument(msg.str());
-	}
+	if (!branch_instrs.count(addr))
+		return;
 
 	branch_coverage &bc = branch_instrs.at(addr);
 	if (condition)
