@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "symbolic_explore.h"
@@ -60,4 +61,30 @@ bool
 SymbolicContext::processed_packet(void)
 {
 	return ++current_packet_index >= packet_sequence_length;
+}
+
+void
+SymbolicContext::early_exit(void)
+{
+	auto store = ctx.getPrevStore();
+	assert(!store.empty() && "early_exit ConcreteStore was empty");
+	partially_explored.push_back(store);
+}
+
+clover::ConcreteStore
+SymbolicContext::random_partial(void)
+{
+	size_t idx;
+
+	if (partially_explored.empty()) {
+		clover::ConcreteStore s;
+		return s; // return empty ConcreteStore
+	}
+
+	assert(!partially_explored.empty());
+	idx = rand() % partially_explored.size();
+
+	clover::ConcreteStore store = partially_explored.at(idx);
+	partially_explored.erase(partially_explored.begin() + idx);
+	return store;
 }

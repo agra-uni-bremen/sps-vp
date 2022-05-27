@@ -18,6 +18,8 @@
 #ifndef RISCV_ISA_SYMBOLIC_CTX_H
 #define RISCV_ISA_SYMBOLIC_CTX_H
 
+#include <vector>
+
 #include <stdbool.h>
 #include <sys/types.h>
 #include <clover/clover.h>
@@ -26,6 +28,8 @@ class SymbolicContext {
 private:
 	size_t current_packet_index = 0;
 	size_t packet_sequence_length = 0;
+
+	std::vector<clover::ConcreteStore> partially_explored;
 
 public:
 	clover::Solver solver;
@@ -51,6 +55,9 @@ public:
 	// thereafter, i.e. if the packet that has just been processed
 	// was the last packet of the packet sequence.
 	bool processed_packet(void);
+
+	void early_exit(void);
+	clover::ConcreteStore random_partial();
 };
 
 extern SymbolicContext symbolic_context;

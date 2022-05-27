@@ -198,37 +198,65 @@ run_test(const char *path, int argc, char **argv)
 }
 
 static int
+explore_path(int argc, char **argv) {
+	clover::Trace &tracer = symbolic_context.trace;
+
+	if (!stopped) {
+		std::cout << std::endl << "##" << std::endl << "# "
+			<< paths_found + 1 << "th concolic execution" << std::endl
+			<< "##" << std::endl;
+	}
+
+	tracer.reset();
+
+	// Reset SystemC simulation context
+	// See also: https://github.com/accellera-official/systemc/issues/8
+	if (sc_core::sc_curr_simcontext) {
+		sc_core::sc_report_handler::release();
+		delete sc_core::sc_curr_simcontext;
+	}
+	sc_core::sc_curr_simcontext = NULL;
+
+	int ret;
+	stopped = false;
+	if ((ret = sc_core::sc_elab_and_sim(argc, argv)) && !stopped)
+		return ret;
+
+	if (!stopped)
+		++paths_found;
+
+	return 0;
+}
+
+static int
 explore_paths(int argc, char **argv)
 {
 	clover::ExecutionContext &ctx = symbolic_context.ctx;
 	clover::Trace &tracer = symbolic_context.trace;
+	size_t maxpktseq = 2;
+	size_t pktseqlen = 1;
+	int ret;
 
-	do {
-		if (!stopped) {
-			std::cout << std::endl << "##" << std::endl << "# "
-				<< paths_found + 1 << "th concolic execution" << std::endl
-				<< "##" << std::endl;
+	while (pktseqlen <= maxpktseq)  {
+		do {
+			symbolic_context.prepare_packet_sequence(pktseqlen);
+			if ((ret = explore_path(argc, argv)))
+				return ret;
+		} while (setupNewValues(ctx, tracer));
+
+		pktseqlen++;
+
+		for (;;) {
+			auto store = symbolic_context.random_partial();
+			if (store.empty())
+				break;
+			ctx.setupNewValues(store);
+
+			symbolic_context.prepare_packet_sequence(pktseqlen);
+			if ((ret = explore_path(argc, argv)))
+				return ret;
 		}
-
-		tracer.reset();
-		symbolic_context.prepare_packet_sequence(1);
-
-		// Reset SystemC simulation context
-		// See also: https://github.com/accellera-official/systemc/issues/8
-		if (sc_core::sc_curr_simcontext) {
-			sc_core::sc_report_handler::release();
-			delete sc_core::sc_curr_simcontext;
-		}
-		sc_core::sc_curr_simcontext = NULL;
-
-		int ret;
-		stopped = false;
-		if ((ret = sc_core::sc_elab_and_sim(argc, argv)) && !stopped)
-			return ret;
-
-		if (!stopped)
-			++paths_found;
-	} while (setupNewValues(ctx, tracer));
+	}
 
 	sc_core::sc_report_handler::release();
 	delete sc_core::sc_curr_simcontext;
