@@ -57,6 +57,12 @@ SymbolicContext::prepare_packet_sequence(size_t n)
 	packet_sequence_length = n;
 }
 
+size_t
+SymbolicContext::current_length(void)
+{
+	return packet_sequence_length;
+}
+
 bool
 SymbolicContext::processed_packet(void)
 {
@@ -64,27 +70,27 @@ SymbolicContext::processed_packet(void)
 }
 
 void
-SymbolicContext::early_exit(void)
+SymbolicContext::early_exit(size_t k)
 {
 	auto store = ctx.getPrevStore();
 	assert(!store.empty() && "early_exit ConcreteStore was empty");
-	partially_explored.push_back(store);
+	partially_explored[k].push_back(store);
 }
 
 clover::ConcreteStore
-SymbolicContext::random_partial(void)
+SymbolicContext::random_partial(size_t k)
 {
 	size_t idx;
 
-	if (partially_explored.empty()) {
+	if (partially_explored[k].empty()) {
 		clover::ConcreteStore s;
 		return s; // return empty ConcreteStore
 	}
 
-	assert(!partially_explored.empty());
-	idx = rand() % partially_explored.size();
+	assert(!partially_explored[k].empty());
+	idx = rand() % partially_explored[k].size();
 
-	clover::ConcreteStore store = partially_explored.at(idx);
-	partially_explored.erase(partially_explored.begin() + idx);
+	clover::ConcreteStore store = partially_explored[k].at(idx);
+	partially_explored[k].erase(partially_explored[k].begin() + idx);
 	return store;
 }

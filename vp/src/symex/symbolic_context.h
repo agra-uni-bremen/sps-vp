@@ -18,6 +18,7 @@
 #ifndef RISCV_ISA_SYMBOLIC_CTX_H
 #define RISCV_ISA_SYMBOLIC_CTX_H
 
+#include <map>
 #include <vector>
 
 #include <stdbool.h>
@@ -29,7 +30,7 @@ private:
 	size_t current_packet_index = 0;
 	size_t packet_sequence_length = 0;
 
-	std::vector<clover::ConcreteStore> partially_explored;
+	std::map<size_t, std::vector<clover::ConcreteStore>> partially_explored;
 
 public:
 	clover::Solver solver;
@@ -48,6 +49,9 @@ public:
 	// thus be called before restarting software execution.
 	void prepare_packet_sequence(size_t);
 
+	// Return size of the current packet sequence length.
+	size_t current_length(void);
+
 	// Indicate that an additional packet of the packet sequence
 	// has been fully processed by the executed RISC-V software.
 	//
@@ -56,8 +60,8 @@ public:
 	// was the last packet of the packet sequence.
 	bool processed_packet(void);
 
-	void early_exit(void);
-	clover::ConcreteStore random_partial();
+	void early_exit(size_t k);
+	clover::ConcreteStore random_partial(size_t k);
 };
 
 extern SymbolicContext symbolic_context;

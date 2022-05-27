@@ -247,7 +247,7 @@ explore_paths(int argc, char **argv)
 		pktseqlen++;
 
 		for (;;) {
-			auto store = symbolic_context.random_partial();
+			auto store = symbolic_context.random_partial(pktseqlen);
 			if (store.empty())
 				break;
 			ctx.setupNewValues(store);

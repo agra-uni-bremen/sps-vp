@@ -1588,8 +1588,10 @@ void ISS::init(instr_memory_if *instr_mem, data_memory_if *data_mem, clint_if *c
 
 void ISS::sys_exit() {
 	shall_exit = symbolic_context.processed_packet();
-	if (shall_exit)
-		symbolic_context.early_exit();
+	if (shall_exit) {
+		size_t k = symbolic_context.current_length();
+		symbolic_context.early_exit(k + 1);
+	}
 }
 
 void ISS::sys_force_exit() {
