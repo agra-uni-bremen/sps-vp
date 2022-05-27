@@ -237,7 +237,7 @@ explore_paths(int argc, char **argv)
 	size_t pktseqlen = 1;
 	int ret;
 
-	while (pktseqlen <= maxpktseq)  {
+	for (;;) {
 		do {
 			symbolic_context.prepare_packet_sequence(pktseqlen);
 			if ((ret = explore_path(argc, argv)))
@@ -245,6 +245,8 @@ explore_paths(int argc, char **argv)
 		} while (setupNewValues(ctx, tracer));
 
 		pktseqlen++;
+		if (pktseqlen > maxpktseq)
+			break;
 
 		for (;;) {
 			auto store = symbolic_context.random_partial(pktseqlen);
