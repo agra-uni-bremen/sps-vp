@@ -17,8 +17,9 @@
 
 #include "symbolic_ctrl.h"
 
-#define CTRL_ERROR (1 << 31)
-#define CTRL_EXIT  (1 << 30)
+#define CTRL_ERROR       (1 << 31)
+#define CTRL_EXIT        (1 << 30)
+#define CTRL_EXIT_FORCE  (1 << 29)
 
 SymbolicCTRL::SymbolicCTRL(sc_core::sc_module_name, symbolic_iss_if &_symif)
   : symif(_symif)
@@ -62,6 +63,8 @@ SymbolicCTRL::write_ctrl(RegisterRange::WriteInfo t)
 		symif.sys_exit();
 	}
 
+	if (*val & CTRL_EXIT_FORCE)
+		symif.sys_force_exit();
 	if (*val & CTRL_EXIT)
 		symif.sys_exit();
 

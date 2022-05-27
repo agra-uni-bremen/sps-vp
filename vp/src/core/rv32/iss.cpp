@@ -1590,6 +1590,10 @@ void ISS::sys_exit() {
 	shall_exit = symbolic_context.processed_packet();
 }
 
+void ISS::sys_force_exit() {
+	shall_exit = true;
+}
+
 unsigned ISS::get_syscall_register_index() {
 	if (csrs.misa.has_E_base_isa())
 		return RegFile::a5;
