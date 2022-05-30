@@ -115,25 +115,9 @@ ProtocolStates::send_message(char *buf, size_t size)
 	if (sockout->bad())
 		throw std::runtime_error("failed to write bencode data to socket");
 
-	// Block until the state machine server has a response
-	// for us and convert that response to a SymbolicFormat.
-	auto data = bencode::decode(*sockin, bencode::no_check_eof);
-	if (sockin->bad())
-		throw std::runtime_error("failed to read bencode data from socket");
-
-	// Hack to create symbolic format from parsed data.
-	std::string tmpFile = "/tmp/protocol_state_format";
-	std::fstream tmp(tmpFile, std::ios::binary|std::ios::trunc|std::ios::out);
-	if (!tmp.is_open())
-		throw std::runtime_error("failed to open file");
-	if (tmp.bad())
-		throw std::runtime_error("failed to write temporary file");
-	bencode::encode(tmp, data);
-	tmp.close();
-	
 	// XXX: Assumption previous messages has been fully received.
 	// See exception throw above.
-	lastMsg = std::make_unique<SymbolicFormat>(ctx, tmpFile);
+	lastMsg = std::make_unique<SymbolicFormat>(ctx, *sockin);
 }
 
 std::shared_ptr<clover::ConcolicValue>

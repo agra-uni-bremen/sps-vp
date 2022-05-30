@@ -22,8 +22,9 @@
 #include <stdint.h>
 #include <symbolic_context.h>
 #include <clover/clover.h>
+#include <istream>
 
-#include "bencode.h"
+#include "bencode.hpp"
 
 class SymbolicFormat {
 private:
@@ -31,25 +32,17 @@ private:
 	clover::Solver &solver;
 	clover::Solver::Env env;
 
-	unsigned offset;
+	bencode::data data;
+
 	std::shared_ptr<clover::ConcolicValue> input;
+	unsigned offset;
 
-	const char *input_str = nullptr;
-	ssize_t input_len;
-	bencode_t bencode;
-
+	std::shared_ptr<clover::ConcolicValue> get_value(bencode::list list, std::string name, uint64_t bitsize);
 	std::shared_ptr<clover::ConcolicValue> make_symbolic(std::string name, uint64_t bitsize, size_t bytesize);
-
-	std::optional<long int> get_size(bencode_t *list_elem);
-	std::optional<std::string> get_name(bencode_t *list_elem);
-	std::optional<std::shared_ptr<clover::ConcolicValue>> get_value(bencode_t *list_elem, std::string name, uint64_t bitsize);
-
-	std::shared_ptr<clover::ConcolicValue> next_field(void);
 	std::shared_ptr<clover::ConcolicValue> get_input(void);
 
 public:
-	SymbolicFormat(SymbolicContext &_ctx, std::string path);
-	~SymbolicFormat(void);
+	SymbolicFormat(SymbolicContext &_ctx, std::istream &stream);
 
 	/* XXX: Could be implemented as an Iterator.
 	 *
