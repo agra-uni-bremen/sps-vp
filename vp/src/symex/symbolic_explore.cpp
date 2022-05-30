@@ -46,6 +46,7 @@
 #define TESTCASE_ENV "SYMEX_TESTCASE"
 #define TIMEBUDGET_ENV "SYMEX_TIMEBUDGET"
 #define ERR_EXIT_ENV "SYMEX_ERREXIT"
+#define MAXPKTSEQ_ENV "SYMEX_MAXPKTSEQ"
 
 static std::filesystem::path *testcase_path = nullptr;
 static size_t errors_found = 0;
@@ -197,6 +198,23 @@ run_test(const char *path, int argc, char **argv)
 	return sc_core::sc_elab_and_sim(argc, argv);
 }
 
+static unsigned long
+get_maxpktseq(void)
+{
+	const char *env;
+	unsigned long maxpktseq;
+
+	if (!(env = getenv(MAXPKTSEQ_ENV)))
+		return 0;
+
+	errno = 0;
+	maxpktseq = strtoul(env, NULL, 10);
+	if (!maxpktseq && errno)
+		throw std::system_error(errno, std::generic_category(), env);
+
+	return maxpktseq;
+}
+
 static int
 explore_path(int argc, char **argv) {
 	clover::Trace &tracer = symbolic_context.trace;
@@ -233,9 +251,14 @@ explore_paths(int argc, char **argv)
 {
 	clover::ExecutionContext &ctx = symbolic_context.ctx;
 	clover::Trace &tracer = symbolic_context.trace;
-	size_t maxpktseq = 2;
-	size_t pktseqlen = 1;
+	size_t maxpktseq;
+	size_t pktseqlen;
 	int ret;
+
+	// Perform bounded symbolic execution on packet sequence length.
+	// Unless maxpktseq is zero in which case the exploration is unbounded.
+	maxpktseq = get_maxpktseq();
+	pktseqlen = 1;
 
 	for (;;) {
 		do {
@@ -245,7 +268,7 @@ explore_paths(int argc, char **argv)
 		} while (setupNewValues(ctx, tracer));
 
 		pktseqlen++;
-		if (pktseqlen > maxpktseq)
+		if (maxpktseq && pktseqlen > maxpktseq)
 			break;
 
 		for (;;) {

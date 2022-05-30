@@ -180,6 +180,8 @@ The following environment variables can be set:
 * **SYMEX_TESTCASE:** This environment variable can point to a test case
   file for replaying inputs causing an error. This is most useful in
   conjunction with `--debug-mode`.
+* **SYMEX_MAXPKTSEQ:** Maximum packet sequence length for concolic
+  testing of stateful network protocol implementations.
 
 ## How To Cite
 
