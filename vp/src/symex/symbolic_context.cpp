@@ -51,13 +51,13 @@ SymbolicContext::assume(std::shared_ptr<clover::BitVector> constraint)
 }
 
 void
-SymbolicContext::prepare_packet_sequence(size_t n)
+SymbolicContext::prepare_packet_sequence(unsigned k)
 {
 	current_packet_index = 0;
-	packet_sequence_length = n;
+	packet_sequence_length = k;
 }
 
-size_t
+unsigned
 SymbolicContext::current_length(void)
 {
 	return packet_sequence_length;
@@ -70,7 +70,7 @@ SymbolicContext::processed_packet(void)
 }
 
 void
-SymbolicContext::early_exit(size_t k)
+SymbolicContext::early_exit(unsigned k)
 {
 	auto store = ctx.getPrevStore();
 	assert(!store.empty() && "early_exit ConcreteStore was empty");
@@ -78,7 +78,7 @@ SymbolicContext::early_exit(size_t k)
 }
 
 clover::ConcreteStore
-SymbolicContext::random_partial(size_t k)
+SymbolicContext::random_partial(unsigned k)
 {
 	size_t idx;
 

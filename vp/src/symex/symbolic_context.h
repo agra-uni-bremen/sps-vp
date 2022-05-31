@@ -27,10 +27,10 @@
 
 class SymbolicContext {
 private:
-	size_t current_packet_index = 0;
-	size_t packet_sequence_length = 0;
+	unsigned current_packet_index = 0;
+	unsigned packet_sequence_length = 0;
 
-	std::map<size_t, std::vector<clover::ConcreteStore>> partially_explored;
+	std::map<unsigned, std::vector<clover::ConcreteStore>> partially_explored;
 
 public:
 	clover::Solver solver;
@@ -47,10 +47,10 @@ public:
 	//
 	// This also reset the current packet sequence index and should
 	// thus be called before restarting software execution.
-	void prepare_packet_sequence(size_t);
+	void prepare_packet_sequence(unsigned);
 
 	// Return size of the current packet sequence length.
-	size_t current_length(void);
+	unsigned current_length(void);
 
 	// Indicate that an additional packet of the packet sequence
 	// has been fully processed by the executed RISC-V software.
@@ -60,8 +60,8 @@ public:
 	// was the last packet of the packet sequence.
 	bool processed_packet(void);
 
-	void early_exit(size_t k);
-	clover::ConcreteStore random_partial(size_t k);
+	void early_exit(unsigned k);
+	clover::ConcreteStore random_partial(unsigned k);
 };
 
 extern SymbolicContext symbolic_context;

@@ -198,7 +198,7 @@ run_test(const char *path, int argc, char **argv)
 	return sc_core::sc_elab_and_sim(argc, argv);
 }
 
-static unsigned long
+static unsigned
 get_maxpktseq(void)
 {
 	const char *env;
@@ -212,7 +212,8 @@ get_maxpktseq(void)
 	if (!maxpktseq && errno)
 		throw std::system_error(errno, std::generic_category(), env);
 
-	return maxpktseq;
+	assert(maxpktseq <= UINT_MAX);
+	return (unsigned)maxpktseq;
 }
 
 static int
@@ -251,8 +252,8 @@ explore_paths(int argc, char **argv)
 {
 	clover::ExecutionContext &ctx = symbolic_context.ctx;
 	clover::Trace &tracer = symbolic_context.trace;
-	size_t maxpktseq;
-	size_t pktseqlen;
+	unsigned maxpktseq;
+	unsigned pktseqlen;
 	int ret;
 
 	// Perform bounded symbolic execution on packet sequence length.
