@@ -173,10 +173,10 @@ create_testdir(void)
 }
 
 static bool
-setupNewValues(clover::ExecutionContext &ctx, clover::Trace &tracer)
+setupNewValues(void)
 {
 	auto start = std::chrono::steady_clock::now();
-	auto r = ctx.setupNewValues(tracer);
+	auto r = symbolic_context.setupNewValues();
 	auto end = std::chrono::steady_clock::now();
 
 	solver_time += end - start;
@@ -251,7 +251,6 @@ static int
 explore_paths(int argc, char **argv)
 {
 	clover::ExecutionContext &ctx = symbolic_context.ctx;
-	clover::Trace &tracer = symbolic_context.trace;
 	unsigned maxpktseq;
 	unsigned pktseqlen;
 	int ret;
@@ -266,7 +265,7 @@ explore_paths(int argc, char **argv)
 			symbolic_context.prepare_packet_sequence(pktseqlen);
 			if ((ret = explore_path(argc, argv)))
 				return ret;
-		} while (setupNewValues(ctx, tracer));
+		} while (setupNewValues());
 
 		pktseqlen++;
 		if (maxpktseq && pktseqlen > maxpktseq)

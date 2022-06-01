@@ -30,6 +30,9 @@ private:
 	unsigned current_packet_index = 0;
 	unsigned packet_sequence_length = 0;
 
+	std::map<klee::ref<klee::Expr>, bool> constraints;
+	bool enforcing_assume = false;
+
 	std::map<unsigned, std::vector<clover::ConcreteStore>> partially_explored;
 
 public:
@@ -38,7 +41,9 @@ public:
 	clover::ExecutionContext ctx;
 
 	SymbolicContext(void);
+
 	void assume(std::shared_ptr<clover::BitVector> constraint);
+	bool setupNewValues(void);
 
 	// Prepare execution of the software with a packet sequence
 	// of the specified length. That is, expect the software to

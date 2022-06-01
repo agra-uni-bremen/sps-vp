@@ -43,11 +43,37 @@ SymbolicContext::SymbolicContext(void)
 void
 SymbolicContext::assume(std::shared_ptr<clover::BitVector> constraint)
 {
-	try {
-		trace.assume(constraint);
-	} catch (clover::AssumeNotification &) {
+	auto assumed_constrained = constraint->eqTrue();
+	auto expr = assumed_constrained->expr;
+
+	bool newConstraint = false;
+	if (!constraints.count(expr)) {
+		trace.assume(assumed_constrained);
+
+		constraints[expr] = true;
+		newConstraint = true;
+	}
+
+	// Force all cores to exit to enforce new constraints.
+	if (newConstraint) {
+		enforcing_assume = true;
 		symbolic_exploration::stop_assume();
 	}
+}
+
+bool
+SymbolicContext::setupNewValues(void)
+{
+	if (enforcing_assume) {
+		enforcing_assume = false;
+		auto assign = trace.fromAssume();
+		if (!assign.has_value())
+			throw std::runtime_error("unsatisfiable constraints added via assume");
+		ctx.setupNewValues(trace.getStore(*assign));
+		return true;
+	}
+
+	return ctx.setupNewValues(trace);
 }
 
 void
