@@ -23,7 +23,7 @@ struct symbolic_iss_if {
 	virtual void make_symbolic(uint32_t addr, size_t size) = 0;
 
 	virtual void sys_exit(void) = 0;
-	virtual void sys_force_exit(void) = 0;
+	virtual void sys_processed_packet(void) = 0;
 };
 
 #endif

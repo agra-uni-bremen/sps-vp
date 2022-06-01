@@ -256,8 +256,8 @@ struct ISS : public external_interrupt_target, public clint_interrupt_target, pu
 	void trigger_software_interrupt(bool status) override;
 
 
+	void sys_processed_packet() override;
 	void sys_exit() override;
-	void sys_force_exit() override;
 	unsigned get_syscall_register_index() override;
 	uint64_t read_register(unsigned idx) override;
 	void write_register(unsigned idx, uint64_t value) override;
