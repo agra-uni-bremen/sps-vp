@@ -99,7 +99,8 @@ void
 SymbolicContext::early_exit(unsigned k)
 {
 	auto store = ctx.getPrevStore();
-	assert(!store.empty() && "early_exit ConcreteStore was empty");
+	// XXX: Store can be empty if packet didn't contain symbolic fields.
+	//assert(!store.empty() && "early_exit ConcreteStore was empty");
 	partially_explored[k].push_back(store);
 }
 
