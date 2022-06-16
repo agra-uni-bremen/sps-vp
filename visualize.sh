@@ -27,5 +27,5 @@ do
 	file=$(echo "${out}" | cut -d : -f1)
 	line=$(echo "${out}" | cut -d : -f2)
 
-	printf "%s:%d\t%s\n" "${file}" "${line}" "$(get_line "${file}" "${line}")"
+	printf "[%s] %s:%d\t%s\n" "${addr}" "${file}" "${line}" "$(get_line "${file}" "${line}")"
 done
