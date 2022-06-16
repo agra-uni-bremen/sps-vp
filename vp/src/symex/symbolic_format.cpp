@@ -67,7 +67,10 @@ SymbolicFormat::SymbolicFormat(SymbolicContext &_ctx, std::istream &stream)
 std::shared_ptr<clover::ConcolicValue>
 SymbolicFormat::make_symbolic(std::string name, uint64_t bitsize, size_t bytesize)
 {
-	auto symbolic_value = ctx.getSymbolicBytes(name, bytesize);
+	auto idx = symbolic_context.current_index();
+	std::string field_name = "pkt" + std::to_string(idx) + ":" + name;
+
+	auto symbolic_value = ctx.getSymbolicBytes(field_name, bytesize);
 	if (HAS_PADDING(bitsize))
 		symbolic_value = symbolic_value->extract(0, bitsize);
 

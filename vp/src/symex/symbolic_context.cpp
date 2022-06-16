@@ -84,6 +84,12 @@ SymbolicContext::prepare_packet_sequence(unsigned k)
 }
 
 unsigned
+SymbolicContext::current_index(void)
+{
+	return current_packet_index;
+}
+
+unsigned
 SymbolicContext::current_length(void)
 {
 	return packet_sequence_length;

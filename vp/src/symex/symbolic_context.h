@@ -54,7 +54,7 @@ public:
 	// thus be called before restarting software execution.
 	void prepare_packet_sequence(unsigned);
 
-	// Return size of the current packet sequence length.
+	unsigned current_index(void);
 	unsigned current_length(void);
 
 	// Indicate that an additional packet of the packet sequence
