@@ -73,7 +73,7 @@ Coverage::TextAddrParser::is_included(uint64_t addr)
 		return true;
 
 	for (auto s : segments) {
-		if (addr >= s.first && addr <= s.second)
+		if (addr >= s.first && addr < s.second)
 			return true;
 	}
 
