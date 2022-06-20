@@ -58,7 +58,7 @@ Coverage::init_section(const Elf32_Shdr *section)
 			addr += sizeof(uint32_t);
 		}
 
-		if (instr.opcode() == Opcode::OP_BEQ)
+		if (parser.is_included(addr) && instr.opcode() == Opcode::OP_BEQ)
 			branch_instrs[last_addr] = std::make_pair(false, false);
 	}
 }

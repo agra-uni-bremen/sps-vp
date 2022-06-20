@@ -19,6 +19,7 @@
 #define RISCV_VP_COVERAGE_H
 
 #include <map>
+#include <vector>
 #include <utility>
 #include <string>
 #include <stdint.h>
@@ -37,9 +38,24 @@ private:
 	std::map<uint64_t, branch_coverage> branch_instrs;
 
 public:
+	class TextAddrParser {
+	private:
+		typedef std::pair<uint64_t, uint64_t> segment;
+
+		std::vector<segment> segments;
+		std::optional<uint64_t> parseAddr(std::string);
+		std::optional<segment> parseSegment(std::string&);
+
+	public:
+		TextAddrParser(std::string path);
+		bool is_included(uint64_t addr);
+	};
+
+	TextAddrParser parser;
 	instr_memory_if *instr_mem = nullptr;
 
-	Coverage(ELFLoader &_loader) : loader(_loader) {
+	Coverage(ELFLoader &_loader, std::string specfile = "")
+	  : loader(_loader), parser(specfile) {
 		return;
 	}
 

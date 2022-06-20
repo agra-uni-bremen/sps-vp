@@ -131,6 +131,7 @@ public:
 	addr_t dram_end_addr = dram_start_addr + dram_size - 1;
 
 	bool enable_can = false;
+	std::string coverage_spec = "";
 	std::string sps_host = "127.0.0.1";
 	std::string sps_service = "2342";
 
@@ -138,6 +139,7 @@ public:
         	// clang-format off
 		add_options()
 			("enable-can", po::bool_switch(&enable_can), "enable support for CAN peripheral")
+			("coverage-spec", po::value<std::string>(&coverage_spec), "coverage specification file")
 			("sps-host", po::value<std::string>(&sps_host), "connect to SPS server at given host")
 			("sps-port", po::value<std::string>(&sps_service), "port of SPS server (see --sps-host)");
         	// clang-format on
@@ -267,7 +269,7 @@ int sc_main(int argc, char **argv) {
 	}
 
 	if (!coverage) {
-		coverage = new Coverage(loader);
+		coverage = new Coverage(loader, opt.coverage_spec);
 		coverage->instr_mem = instr_mem_if;
 		coverage->init();
 	}

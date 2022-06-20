@@ -4,6 +4,7 @@ add_library(rv32
 		iss.cpp
 		syscall.cpp
 		coverage.cpp
+		textaddrparser.cpp
         ${HEADERS})
 
 target_link_libraries(rv32 symex core-common ${SoftFloat_LIBRARIES})
