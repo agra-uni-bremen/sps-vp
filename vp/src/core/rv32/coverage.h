@@ -63,6 +63,7 @@ public:
 	void init_section(const Elf32_Shdr *section);
 
 	void cover_branch(uint64_t, bool);
+	size_t executed_branches(void);
 	double dump_branch_coverage(void);
 };
 

@@ -76,6 +76,22 @@ Coverage::cover_branch(uint64_t addr, bool condition)
 		bc.second = true;
 }
 
+size_t
+Coverage::executed_branches(void)
+{
+	size_t executed_branches = 0;
+
+	for (auto pair : branch_instrs) {
+		branch_coverage &bc = pair.second;
+		if (bc.first)
+			executed_branches++;
+		if (bc.second)
+			executed_branches++;
+	}
+
+	return executed_branches;
+}
+
 double
 Coverage::dump_branch_coverage(void)
 {

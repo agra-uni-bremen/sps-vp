@@ -58,6 +58,7 @@ static bool stopped = false;
 static std::chrono::duration<double, std::milli> solver_time;
 
 extern void dump_coverage(void);
+extern size_t executed_branches(void);
 
 static void
 dump_stats(void)
@@ -247,6 +248,27 @@ explore_path(int argc, char **argv) {
 	return 0;
 }
 
+static bool
+is_stuck(void)
+{
+	static size_t prev_executed_branches = 0;
+	static unsigned long no_new_branch = 0;
+
+	size_t branches = executed_branches();
+	if (branches == prev_executed_branches)
+		no_new_branch++;
+	else
+		no_new_branch = 0;
+	prev_executed_branches = branches;
+
+	// TODO: Make amount configurable
+	bool ret = no_new_branch >= 50;
+	if (ret)
+		no_new_branch = 0;
+
+	return ret;
+}
+
 static int
 explore_paths(int argc, char **argv)
 {
@@ -265,6 +287,9 @@ explore_paths(int argc, char **argv)
 			symbolic_context.prepare_packet_sequence(pktseqlen);
 			if ((ret = explore_path(argc, argv)))
 				return ret;
+
+			if (is_stuck())
+				break;
 		} while (setupNewValues());
 
 		pktseqlen++;
@@ -276,6 +301,11 @@ explore_paths(int argc, char **argv)
 			if (store.empty())
 				break;
 			ctx.setupNewValues(store);
+
+			if (is_stuck()) {
+				symbolic_context.clear_partial();
+				break;
+			}
 
 			symbolic_context.prepare_packet_sequence(pktseqlen);
 			if ((ret = explore_path(argc, argv)))

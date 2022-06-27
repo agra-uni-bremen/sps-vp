@@ -67,6 +67,7 @@ public:
 
 	void early_exit(unsigned k);
 	clover::ConcreteStore random_partial(unsigned k);
+	void clear_partial(void);
 };
 
 extern SymbolicContext symbolic_context;

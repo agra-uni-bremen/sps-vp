@@ -193,6 +193,10 @@ int sc_main(int argc, char **argv) {
 	return 0;
 }
 
+size_t executed_branches(void) {
+	return coverage->executed_branches();
+}
+
 void dump_coverage(void) {
 	if (coverage) {
 		auto bc = coverage->dump_branch_coverage();

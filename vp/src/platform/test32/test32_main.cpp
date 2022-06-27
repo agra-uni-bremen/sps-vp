@@ -133,6 +133,10 @@ void dump_test_signature(TestOptions &opt, clover::ConcolicMemory &mem, ELFLoade
     }
 }
 
+size_t executed_branches(void) {
+	return 0;
+}
+
 void dump_coverage(void) {
 	return;
 }

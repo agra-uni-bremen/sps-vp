@@ -110,6 +110,12 @@ SymbolicContext::early_exit(unsigned k)
 	partially_explored[k].push_back(store);
 }
 
+void
+SymbolicContext::clear_partial(void)
+{
+	partially_explored.clear();
+}
+
 clover::ConcreteStore
 SymbolicContext::random_partial(unsigned k)
 {
