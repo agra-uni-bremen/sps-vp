@@ -137,10 +137,12 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 			if (!(ie & UART_RXWM)) {
 				rxdata = 1 << 31;
 			} else if (sps->empty()) {
-				if (rxdata == SLIP_END)
+				if (rxdata == SLIP_END) {
 					rxdata = 1 << 31;
-				else
+				} else {
+					pktCnt++;
 					rxdata = (uint32_t)SLIP_END;
+				}
 			} else {
 				auto reg = sps->next_byte();
 				reg = (reg->uge(slip_end))->band(reg->ule(slip_esc_esc))->select(reg->urem(slip_end), reg);

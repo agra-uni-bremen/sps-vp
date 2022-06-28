@@ -150,6 +150,9 @@ public:
 static Coverage *coverage = nullptr;
 static ProtocolStates *sps = nullptr;
 
+// Amount of total packets send to the application.
+size_t pktCnt = 0;
+
 int sc_main(int argc, char **argv) {
 	HifiveOptions opt;
 	opt.parse(argc, argv);
@@ -276,6 +279,7 @@ int sc_main(int argc, char **argv) {
 	core.coverage = coverage;
 
 	sc_core::sc_start();
+	pktCnt += uart1.pktCnt;
 
 	for (auto mapping : bus.ports)
 		delete mapping;
@@ -291,6 +295,7 @@ size_t executed_branches(void) {
 }
 
 void dump_coverage(void) {
+	std::cout << "Packets send: " << pktCnt << std::endl;
 	if (coverage) {
 		auto bc = coverage->dump_branch_coverage();
 		std::cout << "Branch Instruction Coverage: " << bc << "%" << std::endl;

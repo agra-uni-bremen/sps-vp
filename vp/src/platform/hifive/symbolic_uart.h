@@ -67,6 +67,8 @@ public:
 	SymbolicUART(sc_core::sc_module_name, uint32_t, SymbolicContext &_ctx, ProtocolStates *_sps);
 	~SymbolicUART(void);
 
+	size_t pktCnt = 0;
+
 	SC_HAS_PROCESS(SymbolicUART);
 
 private:
