@@ -55,6 +55,9 @@ static size_t paths_found = 0;
 static const char* assume_mtype = "/AGRA/riscv-vp/assume-notification";
 static bool stopped = false;
 
+static unsigned maxpktseq = 0;
+static unsigned pktseqlen = 0;
+
 static std::chrono::duration<double, std::milli> solver_time;
 
 extern void dump_coverage(void);
@@ -68,6 +71,7 @@ dump_stats(void)
 	std::cout << std::endl << "---" << std::endl;
 	std::cout << "Unique paths found: " << paths_found << std::endl;
 	std::cout << "Solver Time: " << stime.count() << " seconds" << std::endl;
+	std::cout << "Packet Sequence: " << pktseqlen << " / " << maxpktseq << std::endl;
 	dump_coverage();
 	if (errors_found > 0) {
 		std::cout << "Errors found: " << errors_found << std::endl;
@@ -273,8 +277,6 @@ static int
 explore_paths(int argc, char **argv)
 {
 	clover::ExecutionContext &ctx = symbolic_context.ctx;
-	unsigned maxpktseq;
-	unsigned pktseqlen;
 	int ret;
 
 	// Perform bounded symbolic execution on packet sequence length.
