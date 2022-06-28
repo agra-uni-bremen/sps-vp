@@ -98,23 +98,13 @@ Coverage::dump_branch_coverage(void)
 	size_t total_branches = (branch_instrs.size() * 2);
 	size_t executed_branches = 0;
 
-	std::fstream coverage_file;
-	coverage_file.open("/tmp/coverage.txt", std::ios::out|std::ios::trunc);
-	if(!coverage_file.is_open())
-		throw std::runtime_error("failed to open coverage file");
-
 	for (auto pair : branch_instrs) {
 		branch_coverage &bc = pair.second;
 		if (bc.first)
 			executed_branches++;
-		else
-			coverage_file << "Missed true branch at: 0x" << std::hex << pair.first << std::dec << std::endl;
 		if (bc.second)
 			executed_branches++;
-		else
-			coverage_file << "Missed false branch at: 0x" << std::hex << pair.first << std::dec << std::endl;
 	}
 
-	coverage_file.close();
 	return (double(executed_branches) / double(total_branches)) * 100;
 }
