@@ -58,9 +58,21 @@ Coverage::init_section(const Elf32_Shdr *section)
 			addr += sizeof(uint32_t);
 		}
 
-		if (parser.is_included(addr) && instr.opcode() == Opcode::OP_BEQ)
-			branch_instrs[last_addr] = std::make_pair(false, false);
+		if (parser.is_included(addr)) {
+			instrs[addr] = false;
+			if (instr.opcode() == Opcode::OP_BEQ)
+				branch_instrs[last_addr] = std::make_pair(false, false);
+		}
 	}
+}
+
+void
+Coverage::cover_instr(uint64_t addr)
+{
+	if (!instrs.count(addr))
+		return;
+
+	instrs[addr] = true;
 }
 
 void
@@ -107,4 +119,18 @@ Coverage::dump_branch_coverage(void)
 	}
 
 	return (double(executed_branches) / double(total_branches)) * 100;
+}
+
+double
+Coverage::dump_instr_coverage(void)
+{
+	size_t total_instrs = instrs.size();
+	size_t executed_instrs = 0;
+
+	for (auto pair : instrs) {
+		if (pair.second)
+			executed_instrs++;
+	}
+
+	return (double(executed_instrs) / double(total_instrs)) * 100;
 }

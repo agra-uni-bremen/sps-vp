@@ -204,6 +204,8 @@ void ISS::exec_step() {
 		pc += 4;
 	}
 
+	coverage->cover_instr(last_pc);
+
 	if (trace) {
 		printf("core %2u: prv %1x: pc %8x: %s ", csrs.mhartid.reg, prv, last_pc, Opcode::mappingStr[op]);
 		switch (Opcode::getType(op)) {

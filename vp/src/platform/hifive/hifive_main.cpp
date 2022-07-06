@@ -299,6 +299,9 @@ void dump_coverage(void) {
 	if (coverage) {
 		auto bc = coverage->dump_branch_coverage();
 		std::cout << "Branch Instruction Coverage: " << bc << "%" << std::endl;
+
+		auto ic = coverage->dump_instr_coverage();
+		std::cout << "Instruction Coverage: " << ic << "%" << std::endl;
 	}
 }
 

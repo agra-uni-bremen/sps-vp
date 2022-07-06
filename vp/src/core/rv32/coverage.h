@@ -37,6 +37,8 @@ private:
 	typedef std::pair<bool, bool> branch_coverage;
 	std::map<uint64_t, branch_coverage> branch_instrs;
 
+	std::map<uint64_t, bool> instrs;
+
 public:
 	class TextAddrParser {
 	private:
@@ -62,9 +64,12 @@ public:
 	void init(void);
 	void init_section(const Elf32_Shdr *section);
 
+	void cover_instr(uint64_t);
 	void cover_branch(uint64_t, bool);
+
 	size_t executed_branches(void);
 	double dump_branch_coverage(void);
+	double dump_instr_coverage(void);
 };
 
 }
