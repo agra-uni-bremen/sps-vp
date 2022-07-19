@@ -173,7 +173,7 @@ void SymbolicUART::register_access_callback(const vp::map::register_access_t &r)
 			uint8_t data = (uint8_t)r.nv;
 			if (data == SLIP_END && sndsiz > 0) {
 				run_tx_callback();
-			} else {
+			} else if (data != SLIP_END) {
 				if (sndsiz > 0 && sndbuf[sndsiz - 1] == SLIP_ESC) {
 					switch (data) {
 					case SLIP_ESC_END:
