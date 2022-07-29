@@ -73,7 +73,7 @@ SymbolicContext::setupNewValues(void)
 		return true;
 	}
 
-	return ctx.setupNewValues(trace);
+	return ctx.setupNewValues(symbolic_context.current_length(), trace);
 }
 
 void
