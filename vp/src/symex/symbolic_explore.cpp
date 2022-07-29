@@ -252,12 +252,19 @@ explore_path(int argc, char **argv) {
 	return 0;
 }
 
+static size_t prev_executed_branches = 0;
+static unsigned long no_new_branch = 0;
+
+static void
+is_stuck_reset(void)
+{
+	prev_executed_branches = 0;
+	no_new_branch = 0;
+}
+
 static bool
 is_stuck(void)
 {
-	static size_t prev_executed_branches = 0;
-	static unsigned long no_new_branch = 0;
-
 	size_t branches = executed_branches();
 	if (branches == prev_executed_branches)
 		no_new_branch++;
@@ -285,6 +292,8 @@ explore_paths(int argc, char **argv)
 	pktseqlen = 1;
 
 	for (;;) {
+		// Select a random branch from the execution tree and
+		// discover a new path through the software by negating it.
 		do {
 			symbolic_context.prepare_packet_sequence(pktseqlen);
 			if ((ret = explore_path(argc, argv)))
@@ -298,6 +307,9 @@ explore_paths(int argc, char **argv)
 		if (maxpktseq && pktseqlen > maxpktseq)
 			break;
 
+		// Collect new branches by re-executing the partially
+		// explored paths until the next partial termination or
+		// until the end.
 		for (;;) {
 			auto store = symbolic_context.random_partial(pktseqlen);
 			if (store.empty())
@@ -313,6 +325,9 @@ explore_paths(int argc, char **argv)
 			if ((ret = explore_path(argc, argv)))
 				return ret;
 		}
+
+		setupNewValues();
+		is_stuck_reset();
 	}
 
 	sc_core::sc_report_handler::release();
