@@ -326,7 +326,8 @@ explore_paths(int argc, char **argv)
 				return ret;
 		}
 
-		setupNewValues();
+		bool foundAssig = setupNewValues();
+		assert(foundAssig);
 		is_stuck_reset();
 	}
 
