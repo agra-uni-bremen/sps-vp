@@ -274,7 +274,7 @@ struct ISS : public external_interrupt_target, public clint_interrupt_target, pu
             coverage->cover_branch(last_pc, cond);
 
         if (expr->symbolic.has_value())
-            tracer.add(cond, *expr->symbolic, last_pc, symbolic_context.current_length());
+            tracer.add(cond, *expr->symbolic, last_pc, symbolic_context.current_index() + 1);
     };
 
     void make_symbolic(uint32_t addr, size_t size) override {
