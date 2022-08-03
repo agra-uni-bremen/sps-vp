@@ -291,17 +291,20 @@ explore_paths(int argc, char **argv)
 	maxpktseq = get_maxpktseq();
 	pktseqlen = 1;
 
+	bool foundAssig = true; // initially random (handled by setupNewValues)
 	for (;;) {
 		// Select a random branch from the execution tree and
 		// discover a new path through the software by negating it.
-		do {
-			symbolic_context.prepare_packet_sequence(pktseqlen);
-			if ((ret = explore_path(argc, argv)))
-				return ret;
+		if (foundAssig) {
+			do {
+				symbolic_context.prepare_packet_sequence(pktseqlen);
+				if ((ret = explore_path(argc, argv)))
+					return ret;
 
-			if (is_stuck())
-				break;
-		} while (setupNewValues());
+				if (is_stuck())
+					break;
+			} while (setupNewValues());
+		}
 
 		pktseqlen++;
 		if (maxpktseq && pktseqlen > maxpktseq)
@@ -326,8 +329,7 @@ explore_paths(int argc, char **argv)
 				return ret;
 		}
 
-		bool foundAssig = setupNewValues();
-		assert(foundAssig);
+		foundAssig = setupNewValues();
 		is_stuck_reset();
 	}
 
