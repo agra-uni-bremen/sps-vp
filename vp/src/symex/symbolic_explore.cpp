@@ -61,7 +61,10 @@ static unsigned pktseqlen = 0;
 static std::chrono::duration<double, std::milli> solver_time;
 
 extern void dump_coverage(void);
+extern double dump_instr_coverage(void);
 extern size_t executed_branches(void);
+
+std::fstream coverage_file("/tmp/coverage.txt", std::ios::out|std::ios::trunc);
 
 static void
 dump_stats(void)
@@ -77,6 +80,8 @@ dump_stats(void)
 		std::cout << "Errors found: " << errors_found << std::endl;
 		std::cout << "Testcase directory: " << *testcase_path << std::endl;
 	}
+
+	coverage_file.close();
 }
 
 static std::optional<std::string>
@@ -248,6 +253,7 @@ explore_path(int argc, char **argv) {
 
 	if (!stopped)
 		++paths_found;
+	coverage_file << dump_instr_coverage() << std::endl;
 
 	return 0;
 }

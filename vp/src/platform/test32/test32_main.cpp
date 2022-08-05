@@ -137,6 +137,10 @@ size_t executed_branches(void) {
 	return 0;
 }
 
+void dump_instr_coverage(void) {
+	return;
+}
+
 void dump_coverage(void) {
 	return;
 }

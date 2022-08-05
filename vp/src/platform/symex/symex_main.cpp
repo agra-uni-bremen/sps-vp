@@ -197,6 +197,10 @@ size_t executed_branches(void) {
 	return coverage->executed_branches();
 }
 
+double dump_instr_coverage(void) {
+	return coverage->dump_instr_coverage();
+}
+
 void dump_coverage(void) {
 	if (coverage) {
 		auto bc = coverage->dump_branch_coverage();
