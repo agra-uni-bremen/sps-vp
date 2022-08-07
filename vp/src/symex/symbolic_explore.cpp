@@ -321,9 +321,9 @@ explore_paths(int argc, char **argv)
 		// until the end.
 		for (;;) {
 			auto store = symbolic_context.random_partial(pktseqlen);
-			if (store.empty())
+			if (!store.has_value())
 				break;
-			ctx.setupNewValues(store);
+			ctx.setupNewValues(*store);
 
 			if (is_stuck()) {
 				symbolic_context.clear_partial();

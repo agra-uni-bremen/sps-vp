@@ -20,6 +20,7 @@
 
 #include <map>
 #include <vector>
+#include <optional>
 
 #include <stdbool.h>
 #include <sys/types.h>
@@ -66,7 +67,7 @@ public:
 	bool processed_packet(void);
 
 	void early_exit(unsigned k);
-	clover::ConcreteStore random_partial(unsigned k);
+	std::optional<clover::ConcreteStore> random_partial(unsigned k);
 	void clear_partial(void);
 };
 

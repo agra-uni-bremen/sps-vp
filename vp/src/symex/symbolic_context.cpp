@@ -116,15 +116,13 @@ SymbolicContext::clear_partial(void)
 	partially_explored.clear();
 }
 
-clover::ConcreteStore
+std::optional<clover::ConcreteStore>
 SymbolicContext::random_partial(unsigned k)
 {
 	size_t idx;
 
-	if (partially_explored[k].empty()) {
-		clover::ConcreteStore s;
-		return s; // return empty ConcreteStore
-	}
+	if (partially_explored[k].empty())
+		return std::nullopt;
 
 	assert(!partially_explored[k].empty());
 	idx = rand() % partially_explored[k].size();
