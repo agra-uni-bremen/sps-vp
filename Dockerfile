@@ -1,7 +1,7 @@
-FROM alpine:edge
+FROM alpine:3.17
 
 RUN apk update && apk add --no-cache build-base cmake boost-dev z3-dev \
-	llvm13-dev git gcc-riscv-none-elf newlib-riscv-none-elf
+	llvm-dev git gcc-riscv-none-elf newlib-riscv-none-elf git chicken
 
 # Examples expect riscv32-unknown-* compiler triplet.
 # TODO: Find a better way to deal with this problem.
@@ -9,6 +9,9 @@ RUN sh -c 'ln -s $(command -v riscv-none-elf-gcc) /usr/local/bin/riscv32-unknown
            ln -s $(command -v riscv-none-elf-g++) /usr/local/bin/riscv32-unknown-elf-g++ && \
            ln -s $(command -v riscv-none-elf-as) /usr/local/bin/riscv32-unknown-elf-as && \
            ln -s $(command -v riscv-none-elf-ld) /usr/local/bin/riscv32-unknown-elf-ld'
+
+RUN git clone --depth=1 https://github.com/agra-uni-bremen/sisl /tmp/sisl && cd /tmp/sisl && chicken-install
+RUN git clone --depth=1 https://github.com/agra-uni-bremen/sps /tmp/sps && cd /tmp/sps && chicken-install
 
 RUN adduser -G users -g 'RISC-V VP User' -D riscv-vp
 ADD --chown=riscv-vp:users . /home/riscv-vp/riscv-vp

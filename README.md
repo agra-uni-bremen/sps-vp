@@ -4,6 +4,16 @@ A modified version of [SymEx-VP][symex-vp github] with support for symbolic exec
 This version of SymEx-VP is intended to be used in conjunction with [SPS][sps github] protocol specifications.
 The implementation is further described in the publication “Specification-based Symbolic Execution for Stateful Network Protocol Implementations in the IoT” which will be published in the IEEE Internet of Things Journal.
 
+## Installation
+
+Run the following command to create a Docker image:
+
+    $ docker build -t sps-vp .
+
+Afterwards, start the container using the following command
+
+    $ docker run --rm -it sps-vp
+
 ## Usage
 
 As described in Section III E) of the aforementioned paper, this version of SymEx-VP receives input specifications from a [state protocol server][sps github] (SPS).
